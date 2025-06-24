@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+.relatedProduct{
+  width: 80%;
+  margin: 0 auto;
+  /* background-color: red; */
+  padding-top: 20px;
+}
