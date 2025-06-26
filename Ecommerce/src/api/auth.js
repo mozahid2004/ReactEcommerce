@@ -35,7 +35,7 @@ export const addToCart = async (cartItem, token) => {
 };
 
 // 💖 Add to Wishlist API
-export const addToWishlist = async (productId, token) => {
+export const addToWishlist = async (productId,  token) => {
   try {
     const res = await axios.post(
       'http://localhost:5000/api/user/wishlist',

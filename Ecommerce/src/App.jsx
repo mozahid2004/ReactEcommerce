@@ -24,6 +24,8 @@ import Footer from './components/Footer';
 import Cart from "./pages/user/Cart"
 import SearchPage from "./components/SearchPage"
 import Wishlist from "./pages/user/Wishlist";
+import ProductList from './pages/admin/ProductList';
+import EditProduct from "./pages/admin/EditProduct";
 
 import AddProduct from './pages/admin/AddProduct'; // ✅ Update path if needed
 
@@ -33,49 +35,53 @@ function App() {
 
   return (
     <>
-    <div className="flex flex-col min-h-screen">
-      {/* Top navigation bar */}
-      <NavigationBar />
+      <div className="flex flex-col min-h-screen">
+        {/* Top navigation bar */}
+        <NavigationBar />
 
-      {/* Define application routes */}
-      <Routes>
-        {/* Public pages */}
-        <Route path="/" element={<Home />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* Define application routes */}
+        <Routes>
+          {/* Public pages */}
+          <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-        {/* Authenticated user pages */}
-        <Route path="/cart" element={<Cart/>}/>
-        <Route path="/wishlist" element={<Wishlist />} />
+          {/* Authenticated user pages */}
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/wishlist" element={<Wishlist />} />
 
-        {/* Role-based dashboard redirect */}
-        <Route
-          path="/dashboard"
-          element={
-            user ? (
-              user.role === 'admin' ? (
-                <Navigate to="/admin/dashboard" /> // If admin, redirect to admin dashboard
+          {/* Role-based dashboard redirect */}
+          <Route
+            path="/dashboard"
+            element={
+              user ? (
+                user.role === 'admin' ? (
+                  <Navigate to="/admin/dashboard" /> // If admin, redirect to admin dashboard
+                ) : (
+                  <Navigate to="/user/dashboard" /> // If normal user, redirect to user dashboard
+                )
               ) : (
-                <Navigate to="/user/dashboard" /> // If normal user, redirect to user dashboard
+                <Navigate to="/login" /> // If not logged in, go to login
               )
-            ) : (
-              <Navigate to="/login" /> // If not logged in, go to login
-            )
-          }
-        />
+            }
+          />
 
-        {/* Dashboard routes for admin and user */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/user/dashboard" element={<UserDashboard />} />
-        <Route path="/admin/add-product" element={<AddProduct />} />
-        <Route path="search" element={<SearchPage />} />
-      </Routes>
+          {/* Dashboard routes for admin and user */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/user/dashboard" element={<UserDashboard />} />
+          <Route path="/admin/add-product" element={<AddProduct />} />
+          <Route path="/admin/products" element={<ProductList />} />
+          <Route path="search" element={<SearchPage />} />
+          <Route path="/admin/edit-product/:id" element={<EditProduct />} />
 
 
-      {/* Footer always shown */}
-      <Footer />
+        </Routes>
+
+
+        {/* Footer always shown */}
+        <Footer />
       </div>
     </>
   );

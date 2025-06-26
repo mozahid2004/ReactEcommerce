@@ -16,7 +16,7 @@ function AdminDashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <AdminCard title="➕ Add Product" to="/admin/add-product" />
-        <AdminCard title="✏️ Edit Product" to="/admin/edit-product" />
+        {/* <AdminCard title="✏️ Edit Product" to="/admin/edit-product" /> */}
         <AdminCard title="📦 Product List" to="/admin/products" />
         <AdminCard title="🧑‍💼 Manage Users" to="/admin/users" />
         <AdminCard title="📨 Customer Orders" to="/admin/orders" />

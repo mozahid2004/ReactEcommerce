@@ -1,86 +1,57 @@
+// 📁 backend/routes/productRoutes.js
+
 import express from 'express';
-import Product from '../models/Product.js';
+import {
+  getAllProducts,
+  searchProducts,
+  getProductById,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+} from '../controllers/ProductController.js';
 
 const router = express.Router();
 
-// ✅ GET all products
-router.get('/', async (req, res) => {
-  try {
-    const products = await Product.find({});
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ msg: 'Failed to fetch products' });
-  }
-});
+/**
+ * @route   GET /api/products/search?q=...
+ * @desc    Search products by name or description (case-insensitive)
+ * @access  Public
+ */
+router.get('/search', searchProducts); // 🛑 MUST be placed before '/:id'
 
-// ✅ 🔍 SEARCH route — placed BEFORE `/:id`
-router.get('/search', async (req, res) => {
-  const q = req.query.q || '';
+/**
+ * @route   GET /api/products
+ * @desc    Get all products
+ * @access  Public
+ */
+router.get('/', getAllProducts);
 
-  try {
-    console.log("🔍 Search query received:", q);
-    const products = await Product.find({
-      $or: [
-        { name: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } },
-      ]
-    });
+/**
+ * @route   GET /api/products/:id
+ * @desc    Get a single product by its MongoDB _id
+ * @access  Public
+ */
+router.get('/:id', getProductById);
 
-    res.json(products);
-  } catch (err) {
-    console.error('❌ Backend search route error:', err.message);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
+/**
+ * @route   POST /api/products
+ * @desc    Add a new product (Admin only)
+ * @access  Private (requires auth + role check)
+ */
+router.post('/', addProduct);
 
-// ✅ GET product by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+/**
+ * @route   PUT /api/products/:id
+ * @desc    Update an existing product (Admin only)
+ * @access  Private (requires auth + role check)
+ */
+router.put('/:id', updateProduct);
 
-    res.json(product);
-  } catch (err) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-});
-
-// ✅ POST add new product (admin only if needed)
-router.post('/', async (req, res) => {
-  try {
-    const {
-      id,
-      name,
-      description,
-      price,
-      rating,
-      category,
-      image,
-      topSelling,
-    } = req.body;
-
-    // Basic validation
-    if (!id || !name || !price || !category || !image) {
-      return res.status(400).json({ msg: 'Please fill all required fields' });
-    }
-
-    const newProduct = new Product({
-      id,
-      name,
-      description,
-      price,
-      rating,
-      category,
-      image,
-      topSelling,
-    });
-
-    await newProduct.save();
-    res.status(201).json({ msg: '✅ Product added successfully', product: newProduct });
-  } catch (err) {
-    console.error('❌ Add Product Error:', err.message);
-    res.status(500).json({ msg: '❌ Failed to add product' });
-  }
-});
+/**
+ * @route   DELETE /api/products/:id
+ * @desc    Delete a product by ID (Admin only)
+ * @access  Private (requires auth + role check)
+ */
+router.delete('/:id', deleteProduct);
 
 export default router;

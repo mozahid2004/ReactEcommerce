@@ -6,12 +6,17 @@ function Wishlist() {
 
   useEffect(() => {
     const fetchWishlist = async () => {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/user/wishlist', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWishlist(res.data.wishlist);
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/user/wishlist', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setWishlist(res.data.wishlist || []);
+      } catch (err) {
+        console.error("❌ Wishlist fetch error:", err);
+      }
     };
+
     fetchWishlist();
   }, []);
 
@@ -19,14 +24,29 @@ function Wishlist() {
     <div className="max-w-4xl mx-auto mt-10">
       <h2 className="text-2xl font-bold mb-4">❤️ Your Wishlist</h2>
       {wishlist.length === 0 ? (
-        <p>No items in wishlist.</p>
+        <p className="text-gray-600">No items in wishlist.</p>
       ) : (
-        wishlist.map(item => (
-          <div key={item._id} className="p-4 border mb-2">
-            <h3 className="font-semibold">{item.name}</h3>
-            <p>₹{item.price}</p>
-          </div>
-        ))
+        wishlist.map((item, i) => {
+          const product = item.productId;
+          if (!product || typeof product === 'string') return null;
+
+          return (
+            <div
+              key={item._id || i}
+              className="p-4 border mb-3 rounded-lg shadow bg-white flex items-center gap-4"
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-20 h-20 object-cover rounded"
+              />
+              <div>
+                <h3 className="font-semibold text-lg">{product.name}</h3>
+                <p className="text-gray-600">₹{product.price}</p>
+              </div>
+            </div>
+          );
+        })
       )}
     </div>
   );

@@ -8,7 +8,8 @@ function Signup() {
     name: '',
     email: '',
     password: '',
-    role: 'user'
+    role: 'user',
+    mobile: ''
   });
 
   const [redirect, setRedirect] = useState(false);
@@ -50,6 +51,15 @@ function Signup() {
       />
 
       <input
+        type="text"
+        value={form.mobile}
+        onChange={(e) => setForm({ ...form, mobile: e.target.value })} // ✅ fixed here
+        placeholder="Mobile Number"
+        required
+        className="w-full border border-gray-300 p-2 rounded"
+      />
+
+      <input
         type="email"
         value={form.email}
         onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -83,6 +93,7 @@ function Signup() {
         Signup
       </button>
     </form>
+
   );
 }
 

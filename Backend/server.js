@@ -1,46 +1,46 @@
+// server/server.js
+
+// 📦 Import core dependencies
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+
+// 🔗 Import custom modules
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 
-
+// ✅ Load environment variables from .env
 dotenv.config();
-const app = express();
-app.use(express.json()); // Required to parse JSON request bodies
 
-// ✅ Middleware first
-// app.use(cors({
-//   origin: 'http://localhost:5173',
-//   credentials: true,
-// }));
+// 🚀 Initialize Express app
+const app = express();
+
+// ✅ Enable CORS (for frontend-backend communication)
 app.use(cors());
 
-
+// ✅ Parse incoming JSON requests
 app.use(express.json());
 
-// product from DB
-app.use('/api/products', productRoutes);
-
-// ✅ Connect DB before routes
+// ✅ Start server only after DB connection
 const startServer = async () => {
   try {
-    await connectDB();
+    await connectDB(); // Connect to MongoDB first
 
-    // ✅ Routes after DB connection
+    // ✅ Mount API routes
     app.use('/api/auth', authRoutes);
     app.use('/api/user', userRoutes);
     app.use('/api/products', productRoutes);
 
-
     const PORT = process.env.PORT || 5000;
+
+    // ✅ Start server on defined port
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   } catch (err) {
     console.error("❌ Failed to start server:", err.message);
-    process.exit(1);
+    process.exit(1); // Exit app if DB fails to connect
   }
 };
 
-startServer();
+startServer(); // ❌ You had a backslash here (\), removed it ✅

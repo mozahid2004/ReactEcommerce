@@ -1,10 +1,8 @@
-// src/pages/user/ProductDetail.jsx
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FaStar, FaRegStar } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import { addToCart } from '../../api/auth';
+import { addToCart, addToWishlist } from '../../api/auth';
 import axios from 'axios';
 import ProductCard from './ProductCard';
 
@@ -24,9 +22,10 @@ function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [wishlisted, setWishlisted] = useState(false);
 
   useEffect(() => {
-    window.scrollTo(0, 0); // 👆 Scroll to top on new product load
+    window.scrollTo(0, 0);
     const fetchProduct = async () => {
       try {
         const res = await axios.get(`http://localhost:5000/api/products/${id}`);
@@ -70,6 +69,18 @@ function ProductDetail() {
     }
   };
 
+  const handleWishlist = async () => {
+    try {
+      if (!user) return alert("🔐 Please login to add to wishlist");
+      const token = localStorage.getItem('token');
+      await addToWishlist(product._id, token);
+      setWishlisted(!wishlisted);
+    } catch (err) {
+      console.error("❌ Wishlist Error:", err);
+      alert("❌ Could not update wishlist");
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-20 text-gray-600 text-lg">
@@ -94,12 +105,23 @@ function ProductDetail() {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white p-8 rounded-3xl shadow-xl">
-        <div className="w-full h-[400px] flex items-center justify-center bg-gray-100 overflow-hidden">
+        <div className="w-full h-[400px] flex items-center justify-center bg-gray-100 overflow-hidden relative">
           <img
             src={product.image}
             alt={product.name}
             className="object-contain max-h-full max-w-full"
           />
+
+          {/* ❤️ Wishlist Icon (visible only for non-admin users) */}
+          {user?.role !== 'admin' && (
+            <button
+              onClick={handleWishlist}
+              className="absolute top-4 right-4 text-2xl text-red-500"
+              title="Add to Wishlist"
+            >
+              {wishlisted ? <FaHeart /> : <FaRegHeart />}
+            </button>
+          )}
         </div>
 
         <div>
@@ -108,19 +130,25 @@ function ProductDetail() {
           <p className="mt-4 text-gray-600">{product.description}</p>
           <p className="mt-6 text-2xl text-pink-600 font-bold">₹{product.price}</p>
 
+          {/* 🔘 Action Buttons */}
           <div className="mt-8 flex gap-4">
-            <button
-              onClick={handleAddToCart}
-              className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition"
-            >
-              Add to Cart
-            </button>
-            <button
-              onClick={handleBuyNow}
-              className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition"
-            >
-              Buy Now
-            </button>
+            {user?.role !== 'admin' && (
+              <button
+                onClick={handleAddToCart}
+                className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition"
+              >
+                Add to Cart
+              </button>
+            )}
+
+            {user?.role !== 'admin' && (
+              <button
+                onClick={handleBuyNow}
+                className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition"
+              >
+                Buy Now
+              </button>
+            )}
           </div>
         </div>
       </div>
