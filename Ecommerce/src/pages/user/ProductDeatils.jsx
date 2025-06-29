@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaStar, FaRegStar, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import { addToCart, addToWishlist } from '../../api/auth';
+// import { addToCart, addToWishlist } from '../../api/auth';
+import { addToCart } from '../../Services/cartService';
+addToWishlist
 import axios from 'axios';
 import ProductCard from './ProductCard';
+import { addToWishlist } from '../../Services/wishlistService';
 
 // ⭐ Star Rating Component
 const StarRating = ({ rating }) => (

@@ -64,11 +64,29 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+
+    // ✅ Marketing Features
+    tags: [
+      {
+        type: String, // E.g., "frequent", "electronics-lover", "high-value"
+        trim: true,
+        lowercase: true,
+      },
+    ],
+
+    subscribedToNewsletter: {
+      type: Boolean,
+      default: false,
+    },
+
+    notes: {
+      type: String, // Admin notes about this user for marketing
+      trim: true,
+    },
   },
   {
     timestamps: true, // ✅ Adds createdAt and updatedAt
   }
 );
 
-// ✅ Export model
 export default mongoose.model('User', userSchema);

@@ -1,26 +1,25 @@
 import React, { useState } from 'react';
-import { login as loginAPI } from '../api/auth';         // Renamed for clarity
-import { useAuth } from '../context/AuthContext';        // Auth context hook
-import { useNavigate } from 'react-router-dom';          // Navigation hook
+import authService from '../Services/authService';      // ✅ Default export
+import { useAuth } from '../context/AuthContext';       // ✅ Auth context
+import { useNavigate } from 'react-router-dom';         // ✅ Navigation
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();             // AuthContext login function
-  const navigate = useNavigate();          // Used for redirection
+
+  const { login } = useAuth();       // ✅ Context function to save user/token
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await loginAPI({ email, password }); // 🔄 Backend call
+      const res = await authService.login({ email, password }); // ✅ Auth API call
 
       if (res.token && res.user) {
-        login(res); // ✅ Store user and token in context/localStorage
+        login(res);             // ✅ Save user + token in context
         alert("Login successful");
-
-        // 🔁 Redirect user based on their role
-        navigate('/dashboard');
+        navigate('/dashboard'); // ✅ Redirect
       } else {
         alert(res.msg || "Login failed");
       }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signup } from '../api/auth';
+import authService from '../Services/authService';  // ✅ Correct default import
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 
@@ -19,17 +19,17 @@ function Signup() {
     e.preventDefault();
 
     try {
-      const res = await signup(form);
+      const res = await authService.signup(form); // ✅ Correct function call
 
       if (res?.user && res?.token) {
-        login(res);               // ✅ Save in localStorage + Context
-        setRedirect(true);        // ✅ Trigger redirect
+        login(res);
+        setRedirect(true);
       } else {
         alert(res.msg || "Signup failed.");
       }
     } catch (err) {
-      console.error("Signup error:", err);
-      alert("Signup failed. Check console.");
+      console.error("❌ Signup error:", err);
+      alert("Signup failed. See console.");
     }
   };
 
@@ -53,7 +53,7 @@ function Signup() {
       <input
         type="text"
         value={form.mobile}
-        onChange={(e) => setForm({ ...form, mobile: e.target.value })} // ✅ fixed here
+        onChange={(e) => setForm({ ...form, mobile: e.target.value })}
         placeholder="Mobile Number"
         required
         className="w-full border border-gray-300 p-2 rounded"
@@ -93,7 +93,6 @@ function Signup() {
         Signup
       </button>
     </form>
-
   );
 }
 

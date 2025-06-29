@@ -26,6 +26,10 @@ import SearchPage from "./components/SearchPage"
 import Wishlist from "./pages/user/Wishlist";
 import ProductList from './pages/admin/ProductList';
 import EditProduct from "./pages/admin/EditProduct";
+import ManageUsers from './pages/admin/ManageUsers';
+
+
+
 
 import AddProduct from './pages/admin/AddProduct'; // ✅ Update path if needed
 
@@ -75,6 +79,7 @@ function App() {
           <Route path="/admin/products" element={<ProductList />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="/admin/edit-product/:id" element={<EditProduct />} />
+          <Route path="/admin/users" element={<ManageUsers/>}/>
 
 
         </Routes>

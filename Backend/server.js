@@ -10,6 +10,8 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
+import adminUserRoutes from './routes/adminUserRoutes.js'
+
 
 // ✅ Load environment variables from .env
 dotenv.config();
@@ -32,6 +34,8 @@ const startServer = async () => {
     app.use('/api/auth', authRoutes);
     app.use('/api/user', userRoutes);
     app.use('/api/products', productRoutes);
+    app.use('/api/admin/users', adminUserRoutes);
+
 
     const PORT = process.env.PORT || 5000;
 
