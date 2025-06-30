@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
 
     mobile: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
 
@@ -86,7 +86,17 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // ✅ Adds createdAt and updatedAt
+  },
+  {
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      postalCode: String
+    }
   }
+
+
 );
 
 export default mongoose.model('User', userSchema);

@@ -126,11 +126,31 @@ const getWishlist = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Get user profile including address
+ * @route  GET /api/user/profile
+ * @access Private
+ */
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('address');
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+
+    res.json({ address: user.address });
+  } catch (err) {
+    console.error('❌ Get profile error:', err.message);
+    res.status(500).json({ msg: 'Failed to fetch user profile' });
+  }
+};
+
+
+
 // ✅ Export all functions
 export {
   addToCart,
   getCart,
   removeFromCart,
   addToWishlist,
-  getWishlist
+  getWishlist,
+  getUserProfile
 };

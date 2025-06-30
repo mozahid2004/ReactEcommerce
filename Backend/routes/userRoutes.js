@@ -1,6 +1,7 @@
 import express from 'express';
-import auth from '../middleware/authMiddleware.js'; // ✅ REQUIRED
+import auth from '../middleware/authMiddleware.js';
 import {
+  getUserProfile, // 👈 Import controller function
   addToCart,
   getCart,
   removeFromCart,
@@ -10,10 +11,12 @@ import {
 
 const router = express.Router();
 
+router.get('/profile', auth(), getUserProfile); // ✅ ADD THIS LINE
+
+// your existing routes...
 router.post('/cart', auth(), addToCart);
 router.get('/cart', auth(), getCart);
 router.delete('/cart/:productId', auth(), removeFromCart);
-
 router.post('/wishlist', auth(), addToWishlist);
 router.get('/wishlist', auth(), getWishlist);
 

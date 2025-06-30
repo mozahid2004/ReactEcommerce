@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { FaStar, FaRegStar, FaHeart, FaRegHeart } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
-// import { addToCart, addToWishlist } from '../../api/auth';
-import { addToCart } from '../../Services/cartService';
-addToWishlist
 import axios from 'axios';
-import ProductCard from './ProductCard';
+
+import { useAuth } from '../../context/AuthContext';
+import { addToCart } from '../../Services/cartService';
 import { addToWishlist } from '../../Services/wishlistService';
+import ProductCard from './ProductCard';
 
 // ⭐ Star Rating Component
 const StarRating = ({ rating }) => (
@@ -18,9 +17,10 @@ const StarRating = ({ rating }) => (
   </div>
 );
 
-function ProductDetail() {
+function ProductDetails() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -29,6 +29,7 @@ function ProductDetail() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+
     const fetchProduct = async () => {
       try {
         const res = await axios.get(`http://localhost:5000/api/products/${id}`);
@@ -60,21 +61,28 @@ function ProductDetail() {
     }
   };
 
-  const handleBuyNow = async () => {
-    try {
-      if (!user) return alert("🔐 Please login to buy");
-      const token = localStorage.getItem('token');
-      await addToCart({ productId: product._id, quantity: 1 }, token);
-      window.location.href = "/user/cart";
-    } catch (err) {
-      console.error("❌ Buy Now Error:", err);
-      alert("❌ Error processing your request");
+  const handleBuyNow = () => {
+    if (!user) {
+      alert("🔐 Please login to buy");
+      return;
     }
+  
+    navigate('/review-order', {
+      state: {
+        product,
+        quantity: 1,
+        type: 'single', // ✅ IMPORTANT
+      },
+    });
   };
+  
 
   const handleWishlist = async () => {
     try {
-      if (!user) return alert("🔐 Please login to add to wishlist");
+      if (!user) {
+        alert("🔐 Please login to add to wishlist");
+        return;
+      }
       const token = localStorage.getItem('token');
       await addToWishlist(product._id, token);
       setWishlisted(!wishlisted);
@@ -115,7 +123,7 @@ function ProductDetail() {
             className="object-contain max-h-full max-w-full"
           />
 
-          {/* ❤️ Wishlist Icon (visible only for non-admin users) */}
+          {/* ❤️ Wishlist Icon */}
           {user?.role !== 'admin' && (
             <button
               onClick={handleWishlist}
@@ -136,21 +144,20 @@ function ProductDetail() {
           {/* 🔘 Action Buttons */}
           <div className="mt-8 flex gap-4">
             {user?.role !== 'admin' && (
-              <button
-                onClick={handleAddToCart}
-                className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition"
-              >
-                Add to Cart
-              </button>
-            )}
-
-            {user?.role !== 'admin' && (
-              <button
-                onClick={handleBuyNow}
-                className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition"
-              >
-                Buy Now
-              </button>
+              <>
+                <button
+                  onClick={handleAddToCart}
+                  className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition"
+                >
+                  Add to Cart
+                </button>
+                <button
+                  onClick={handleBuyNow}
+                  className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition"
+                >
+                  Buy Now
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -171,4 +178,4 @@ function ProductDetail() {
   );
 }
 
-export default ProductDetail;
+export default ProductDetails ;
