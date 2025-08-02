@@ -7,6 +7,7 @@ import {
   removeFromCart,
   addToWishlist,
   getWishlist,
+  updateAddress
 } from '../controllers/userController.js';
 
 const router = express.Router();
@@ -19,5 +20,7 @@ router.get('/cart', auth(), getCart);
 router.delete('/cart/:productId', auth(), removeFromCart);
 router.post('/wishlist', auth(), addToWishlist);
 router.get('/wishlist', auth(), getWishlist);
+router.put('/address', auth(), updateAddress);
+
 
 export default router;

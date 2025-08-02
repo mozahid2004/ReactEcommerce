@@ -65,10 +65,18 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
+    // ✅ Address properly defined INSIDE the schema
+    address: {
+      street: { type: String },
+      city: { type: String },
+      state: { type: String },
+      postalCode: { type: String }
+    },
+
     // ✅ Marketing Features
     tags: [
       {
-        type: String, // E.g., "frequent", "electronics-lover", "high-value"
+        type: String,
         trim: true,
         lowercase: true,
       },
@@ -80,23 +88,13 @@ const userSchema = new mongoose.Schema(
     },
 
     notes: {
-      type: String, // Admin notes about this user for marketing
+      type: String,
       trim: true,
     },
   },
   {
-    timestamps: true, // ✅ Adds createdAt and updatedAt
-  },
-  {
-    address: {
-      street: String,
-      city: String,
-      state: String,
-      postalCode: String
-    }
+    timestamps: true,
   }
-
-
 );
 
 export default mongoose.model('User', userSchema);

@@ -1,4 +1,3 @@
-// src/pages/user/OrderSummary.jsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getUserAddress } from '../../Services/orderDetails';
@@ -22,9 +21,10 @@ function OrderSummary() {
     const fetchAddress = async () => {
       try {
         const data = await getUserAddress();
+        console.log("✅ Address fetched:", data);
         setAddress(data);
       } catch (error) {
-        console.error("❌ Error loading address:", error);
+        console.error('❌ Error loading address:', error);
       }
     };
 
@@ -52,10 +52,7 @@ function OrderSummary() {
       {/* 🛍️ Ordered Items */}
       <div className="space-y-6">
         {items.map((item, index) => (
-          <div
-            key={index}
-            className="bg-white shadow rounded-lg p-4 flex gap-4"
-          >
+          <div key={index} className="bg-white shadow rounded-lg p-4 flex gap-4">
             <img
               src={item.product.image}
               alt={item.product.name}
@@ -64,7 +61,10 @@ function OrderSummary() {
             <div className="flex-1">
               <h3 className="text-lg font-bold text-gray-800">{item.product.name}</h3>
               <p className="text-gray-600">Qty: {item.quantity}</p>
-              <p className="text-pink-600 font-bold">₹{item.product.price}</p>
+              <p className="text-pink-600 font-bold">
+                ₹{item.product.price} × {item.quantity} = ₹
+                {(item.product.price * item.quantity).toFixed(2)}
+              </p>
             </div>
           </div>
         ))}
@@ -85,11 +85,45 @@ function OrderSummary() {
       {/* 💰 Bill Summary */}
       <div className="mt-10 bg-gray-50 p-6 rounded-xl shadow-md">
         <h4 className="text-xl font-semibold mb-4">💰 Bill Summary</h4>
-        <ul className="space-y-2 text-gray-700">
-          <li>Subtotal: ₹{subtotal.toFixed(2)}</li>
-          <li>Tax: ₹{tax.toFixed(2)}</li>
-          <li>Delivery Fee: ₹{deliveryFee.toFixed(2)}</li>
-          <li className="font-bold text-lg text-gray-800">Total: ₹{total.toFixed(2)}</li>
+
+        {/* Product Breakdown */}
+        <ul className="mb-4 space-y-2 text-gray-700 text-sm">
+          {items.map((item, index) => {
+            const price = item.product.price;
+            const qty = item.quantity;
+            const totalPerItem = price * qty;
+
+            return (
+              <li key={index} className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium">{item.product.name}</div>
+                  <div className="text-gray-500">
+                    ₹{price.toFixed(2)} × {qty} = ₹{totalPerItem.toFixed(2)}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* Totals */}
+        <ul className="space-y-2 text-gray-700 text-sm">
+          <li className="flex justify-between">
+            <span>Subtotal:</span>
+            <span>₹{subtotal.toFixed(2)}</span>
+          </li>
+          <li className="flex justify-between">
+            <span>Tax (5%):</span>
+            <span>₹{tax.toFixed(2)}</span>
+          </li>
+          <li className="flex justify-between">
+            <span>Delivery Fee:</span>
+            <span>₹{deliveryFee.toFixed(2)}</span>
+          </li>
+          <li className="flex justify-between font-bold text-lg text-gray-800 border-t pt-2">
+            <span>Total:</span>
+            <span>₹{total.toFixed(2)}</span>
+          </li>
         </ul>
       </div>
 

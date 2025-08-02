@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import ShippingAddress from '../../components/ShippingAddress';
+import axios from 'axios';
 
 function ReviewOrder() {
   const location = useLocation();
@@ -12,29 +14,26 @@ function ReviewOrder() {
   const [subtotal, setSubtotal] = useState(0);
   const [total, setTotal] = useState(0);
 
-  // 🆕 Shipping address state
-  const [address, setAddress] = useState({
+  // ✅ Use this one consistent state
+  const [shippingForm, setShippingForm] = useState({
     name: '',
     mobile: '',
-    address: '',
+    addr: '',
     city: '',
-    state: '',
+    st: '',
     pincode: '',
-    landmark: '',
   });
 
-  // 🆕 Input handler
-  const handleAddressChange = (e) => {
-    setAddress({ ...address, [e.target.name]: e.target.value });
+  const handleShippingChange = (e) => {
+    const { name, value } = e.target;
+    setShippingForm((prev) => ({ ...prev, [name]: value }));
   };
 
   useEffect(() => {
     if (type === 'single' && product) {
       setItems([{ product, quantity: initialQty || 1 }]);
     } else if (type === 'multiple' && Array.isArray(cartItems)) {
-      const valid = cartItems.filter(
-        (item) => item?.product && typeof item.product === 'object'
-      );
+      const valid = cartItems.filter((item) => item?.product && typeof item.product === 'object');
       setItems(valid);
     }
   }, [product, initialQty, cartItems, type]);
@@ -54,39 +53,72 @@ function ReviewOrder() {
     setItems(updated);
   };
 
-  const handlePlaceOrder = () => {
-    if (!items.length) return;
-  
-    const { name, mobile, address: addr, city, state: st, pincode } = address;
+  const handlePlaceOrder = async () => {
+    const { name, mobile, addr, city, st, pincode } = shippingForm;
+
     if (!name || !mobile || !addr || !city || !st || !pincode) {
       alert('❌ Please fill all required address fields');
       return;
     }
 
-    const payload =
-      type === 'single'
-        ? {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        'http://localhost:5000/api/user/address',
+        {
+          name,
+          mobile,
+          address: {
+            street: addr,
+            city,
+            state: st,
+            postalCode: pincode,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log('✅ Address saved successfully');
+
+      const shippingAddress = {
+        name,
+        mobile,
+        address: addr,
+        city,
+        state: st,
+        pincode,
+      };
+
+      const payload =
+        type === 'single'
+          ? {
             product: items[0].product,
             quantity: items[0].quantity,
             subtotal,
             total,
             deliveryFee,
             tax: subtotal * taxRate,
-            shippingAddress: address, // 🆕 added
+            shippingAddress,
           }
-        : {
+          : {
             cartItems: items,
             subtotal,
             total,
             deliveryFee,
             tax: subtotal * taxRate,
-            shippingAddress: address, // 🆕 added
+            shippingAddress,
           };
 
-
-    navigate('/order-summary', { state: payload });
+      navigate('/order-summary', { state: payload });
+    } catch (err) {
+      console.error('❌ Error saving address:', err);
+      alert('Something went wrong while saving address.');
+    }
   };
-  
 
   if (!items.length) {
     return (
@@ -130,9 +162,7 @@ function ReviewOrder() {
                   type="number"
                   min="1"
                   value={item.quantity}
-                  onChange={(e) =>
-                    handleQtyChange(index, e.target.value)
-                  }
+                  onChange={(e) => handleQtyChange(index, e.target.value)}
                   className="w-20 px-2 py-1 border rounded"
                 />
               </div>
@@ -141,36 +171,56 @@ function ReviewOrder() {
         ))}
       </div>
 
-      {/* 🆕 Shipping Address */}
-      <div className="mt-10 bg-white p-6 rounded-xl shadow-md">
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">
-          📦 Shipping Address
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input name="name" value={address.name} onChange={handleAddressChange} placeholder="Full Name" className="input" />
-          <input name="mobile" value={address.mobile} onChange={handleAddressChange} placeholder="Mobile Number" className="input" />
-          <input name="address" value={address.address} onChange={handleAddressChange} placeholder="Full Address" className="input" />
-          <input name="landmark" value={address.landmark} onChange={handleAddressChange} placeholder="Landmark (optional)" className="input" />
-          <input name="city" value={address.city} onChange={handleAddressChange} placeholder="City" className="input" />
-          <input name="state" value={address.state} onChange={handleAddressChange} placeholder="State" className="input" />
-          <input name="pincode" value={address.pincode} onChange={handleAddressChange} placeholder="Pincode" className="input" />
-        </div>
-      </div>
+      {/* 🚚 Shipping Address */}
+      <ShippingAddress form={shippingForm} onChange={handleShippingChange} />
 
       {/* 💵 Bill Summary */}
       <div className="mt-10 bg-gray-50 p-6 rounded-xl shadow-md">
         <h4 className="text-xl font-semibold mb-4">💰 Bill Summary</h4>
-        <ul className="space-y-2 text-gray-700">
-          <li>Subtotal: ₹{subtotal.toFixed(2)}</li>
-          <li>Tax (5%): ₹{(subtotal * taxRate).toFixed(2)}</li>
-          <li>Delivery Fee: ₹{deliveryFee.toFixed(2)}</li>
-          <li className="font-bold text-lg text-gray-800">
-            Total: ₹{total.toFixed(2)}
+
+        {/* 🛍️ List of Products */}
+        <ul className="mb-4 space-y-2 text-gray-700 text-sm">
+          {items.map((item, index) => {
+            const price = item.product.price;
+            const qty = item.quantity;
+            const totalPerItem = price * qty;
+
+            return (
+              <li key={index} className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium">{item.product.name}</div>
+                  <div className="text-gray-500">
+                    ₹{price.toFixed(2)} × {qty} = ₹{totalPerItem.toFixed(2)}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* 💰 Cost Totals */}
+        <ul className="space-y-2 text-gray-700 text-sm">
+          <li className="flex justify-between">
+            <span>Subtotal:</span>
+            <span>₹{subtotal.toFixed(2)}</span>
+          </li>
+          <li className="flex justify-between">
+            <span>Tax (5%):</span>
+            <span>₹{(subtotal * taxRate).toFixed(2)}</span>
+          </li>
+          <li className="flex justify-between">
+            <span>Delivery Fee:</span>
+            <span>₹{deliveryFee.toFixed(2)}</span>
+          </li>
+          <li className="flex justify-between font-bold text-lg text-gray-800 border-t pt-2">
+            <span>Total:</span>
+            <span>₹{total.toFixed(2)}</span>
           </li>
         </ul>
       </div>
 
-      {/* 🚚 Place Order */}
+
+      {/* ✅ Place Order */}
       <div className="text-center mt-10">
         <button
           onClick={handlePlaceOrder}

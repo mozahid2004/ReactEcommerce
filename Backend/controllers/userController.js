@@ -1,5 +1,3 @@
-// controllers/userController.js
-
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 
@@ -12,18 +10,14 @@ const addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
 
-    // ✅ Validate productId
     if (!productId) return res.status(400).json({ msg: "Product ID is required" });
 
-    // ✅ Check if product exists
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ msg: "Product not found" });
 
-    // ✅ Get the current user
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    // ✅ Check if product already in cart
     const exists = user.cart.find(item => item.productId.toString() === productId);
 
     if (exists) {
@@ -69,7 +63,6 @@ const removeFromCart = async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    // ✅ Filter out the product
     user.cart = user.cart.filter(item => item.productId.toString() !== productId);
 
     await user.save();
@@ -131,19 +124,39 @@ const getWishlist = async (req, res) => {
  * @route  GET /api/user/profile
  * @access Private
  */
-const getUserProfile = async (req, res) => {
+const updateAddress = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('address');
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: 'User not found' });
 
-    res.json({ address: user.address });
+    user.address = req.body.address;
+    await user.save();
+
+    res.json({ msg: 'Address updated successfully', address: user.address });
   } catch (err) {
-    console.error('❌ Get profile error:', err.message);
-    res.status(500).json({ msg: 'Failed to fetch user profile' });
+    console.error('❌ Update address error:', err.message);
+    res.status(500).json({ msg: 'Failed to update address' });
   }
 };
 
 
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    res.json({
+      address: user.address || null,
+      name: user.name,
+      email: user.email
+    });
+  } catch (error) {
+    console.error('❌ Get profile error:', error.message);
+    res.status(500).json({ msg: 'Failed to fetch profile' });
+  }
+};
 
 // ✅ Export all functions
 export {
@@ -152,5 +165,6 @@ export {
   removeFromCart,
   addToWishlist,
   getWishlist,
-  getUserProfile
+  getUserProfile,
+  updateAddress  // ✅ Corrected name
 };

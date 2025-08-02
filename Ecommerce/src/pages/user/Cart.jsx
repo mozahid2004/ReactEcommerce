@@ -17,7 +17,7 @@ function Cart() {
         });
         setCart(Array.isArray(res.data.cart) ? res.data.cart : []);
       } catch (error) {
-        console.error("❌ Error fetching cart:", error);
+        console.error('❌ Error fetching cart:', error);
         setCart([]);
       } finally {
         setLoading(false);
@@ -27,7 +27,24 @@ function Cart() {
     fetchCart();
   }, []);
 
-  // ✅ Remove from cart
+  // ⛑️ Filter valid cart items
+  const validCartItems = cart.filter(
+    (item) =>
+      item?.productId &&
+      typeof item.productId === 'object' &&
+      Number(item.quantity) > 0
+  );
+
+  // 💰 Bill Summary
+  const totalItems = validCartItems.reduce(
+    (acc, item) => acc + Number(item.quantity),
+    0
+  );
+  const totalPrice = validCartItems.reduce((acc, item) => {
+    const price = item.productId?.price || 0;
+    return acc + Number(item.quantity) * price;
+  }, 0);
+
   // ✅ Remove from cart
   const handleRemove = async (productId) => {
     try {
@@ -37,14 +54,13 @@ function Cart() {
       });
 
       setCart((prev) =>
-        prev.filter((item) => item?.productId && item.productId._id !== productId)
+        prev.filter((item) => item?.productId?._id !== productId)
       );
     } catch (err) {
       console.error('❌ Remove failed:', err);
       alert('❌ Could not remove item');
     }
   };
-
 
   // ✅ Buy Now (single product)
   const handleBuyNow = (product, quantity) => {
@@ -59,32 +75,23 @@ function Cart() {
 
   // ✅ Buy All Items
   const handleBuyAll = () => {
-    const validItems = cart
-      .filter(item => item?.productId && typeof item.productId === 'object')
-      .map(item => ({
-        product: item.productId,
-        quantity: item.quantity,
-      }));
+    const buyItems = validCartItems.map((item) => ({
+      product: item.productId,
+      quantity: item.quantity,
+    }));
 
-    if (!validItems.length) {
-      alert("❌ No valid items to buy");
+    if (!buyItems.length) {
+      alert('❌ No valid items to buy');
       return;
     }
 
     navigate('/review-order', {
       state: {
-        cartItems: validItems,
+        cartItems: buyItems,
         type: 'multiple',
       },
     });
   };
-
-  // 💰 Bill Summary
-  const totalItems = cart.reduce((acc, item) => acc + (item.quantity || 0), 0);
-  const totalPrice = cart.reduce((acc, item) => {
-    const price = item?.productId?.price || 0;
-    return acc + (item.quantity || 0) * price;
-  }, 0);
 
   return (
     <div className="max-w-4xl mx-auto mt-10 px-4">
@@ -92,14 +99,13 @@ function Cart() {
 
       {loading ? (
         <p className="text-gray-600">Loading your cart...</p>
-      ) : cart.length === 0 ? (
+      ) : validCartItems.length === 0 ? (
         <p className="text-gray-600">No items in cart.</p>
       ) : (
         <>
           <div className="space-y-4">
-            {cart.map((item, i) => {
-              const product = item?.productId;
-              if (!product || typeof product === 'string') return null;
+            {validCartItems.map((item, i) => {
+              const product = item.productId;
 
               return (
                 <div
@@ -113,10 +119,18 @@ function Cart() {
                   />
 
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
-                    <p className="text-sm text-gray-500">{product.description?.slice(0, 80)}...</p>
-                    <p className="text-pink-600 font-bold mt-1">₹{product.price}</p>
-                    <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {product.description?.slice(0, 80)}...
+                    </p>
+                    <p className="text-pink-600 font-bold mt-1">
+                      ₹{product.price}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Quantity: {item.quantity}
+                    </p>
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -138,10 +152,15 @@ function Cart() {
             })}
           </div>
 
+          {/* 💵 Bill Summary */}
           <div className="mt-8 bg-gray-100 p-6 rounded-2xl shadow-md text-right">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">🧾 Bill Summary</h3>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              🧾 Bill Summary
+            </h3>
             <p className="text-gray-700">Total Items: {totalItems}</p>
-            <p className="text-gray-800 text-lg font-bold mt-2">Total Amount: ₹{totalPrice}</p>
+            <p className="text-gray-800 text-lg font-bold mt-2">
+              Total Amount: ₹{totalPrice}
+            </p>
 
             <button
               onClick={handleBuyAll}
