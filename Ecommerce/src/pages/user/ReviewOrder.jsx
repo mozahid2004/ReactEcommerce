@@ -1,236 +1,154 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import ShippingAddress from '../../components/ShippingAddress';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-function ReviewOrder() {
-  const location = useLocation();
+const ReviewOrder = () => {
   const navigate = useNavigate();
-  const { product, quantity: initialQty, cartItems, type } = location.state || {};
+  const { state } = useLocation();
+  const { product, quantity, cartItems, type } = state || {};
 
-  const [items, setItems] = useState([]);
-  const [taxRate] = useState(0.05);
-  const [deliveryFee] = useState(40);
-  const [subtotal, setSubtotal] = useState(0);
-  const [total, setTotal] = useState(0);
-
-  // ✅ Use this one consistent state
-  const [shippingForm, setShippingForm] = useState({
-    name: '',
-    mobile: '',
-    addr: '',
-    city: '',
-    st: '',
-    pincode: '',
+  const [address, setAddress] = useState({
+    name: "",
+    street: "",
+    city: "",
+    state: "",
+    pin: "",
+    phone: "",
   });
 
-  const handleShippingChange = (e) => {
+  const handleAddressChange = (e) => {
     const { name, value } = e.target;
-    setShippingForm((prev) => ({ ...prev, [name]: value }));
+    setAddress((prev) => ({ ...prev, [name]: value }));
   };
 
-  useEffect(() => {
-    if (type === 'single' && product) {
-      setItems([{ product, quantity: initialQty || 1 }]);
-    } else if (type === 'multiple' && Array.isArray(cartItems)) {
-      const valid = cartItems.filter((item) => item?.product && typeof item.product === 'object');
-      setItems(valid);
-    }
-  }, [product, initialQty, cartItems, type]);
+  const items =
+    type === "single"
+      ? [{ ...product, quantity: quantity || 1 }]
+      : (cartItems || []).map((item) => ({
+          ...item.product, // spread actual product object
+          quantity: item.quantity || 1,
+        }));
 
-  useEffect(() => {
-    const sub = items.reduce(
-      (acc, item) => acc + (item.quantity || 0) * (item.product?.price || 0),
-      0
-    );
-    setSubtotal(sub);
-    setTotal(sub + sub * taxRate + deliveryFee);
-  }, [items]);
+  const subtotal = items.reduce(
+    (acc, item) => acc + (item.price || 0) * item.quantity,
+    0
+  );
+  const tax = +(subtotal * 0.18).toFixed(2);
+  const deliveryFee = 50;
+  const total = +(subtotal + tax + deliveryFee).toFixed(2);
 
-  const handleQtyChange = (index, value) => {
-    const updated = [...items];
-    updated[index].quantity = Math.max(1, parseInt(value) || 1);
-    setItems(updated);
-  };
-
-  const handlePlaceOrder = async () => {
-    const { name, mobile, addr, city, st, pincode } = shippingForm;
-
-    if (!name || !mobile || !addr || !city || !st || !pincode) {
-      alert('❌ Please fill all required address fields');
+  const handleContinue = () => {
+    if (!address.name || !address.phone || !address.street) {
+      alert("❌ Please fill in at least Name, Phone, and Street Address.");
       return;
     }
 
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        'http://localhost:5000/api/user/address',
-        {
-          name,
-          mobile,
-          address: {
-            street: addr,
-            city,
-            state: st,
-            postalCode: pincode,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      console.log('✅ Address saved successfully');
-
-      const shippingAddress = {
-        name,
-        mobile,
-        address: addr,
-        city,
-        state: st,
-        pincode,
-      };
-
-      const payload =
-        type === 'single'
-          ? {
-            product: items[0].product,
-            quantity: items[0].quantity,
-            subtotal,
-            total,
-            deliveryFee,
-            tax: subtotal * taxRate,
-            shippingAddress,
-          }
-          : {
-            cartItems: items,
-            subtotal,
-            total,
-            deliveryFee,
-            tax: subtotal * taxRate,
-            shippingAddress,
-          };
-
-      navigate('/order-summary', { state: payload });
-    } catch (err) {
-      console.error('❌ Error saving address:', err);
-      alert('Something went wrong while saving address.');
-    }
+    navigate("/order-summary", {
+      state: {
+        items,
+        subtotal,
+        tax,
+        deliveryFee,
+        total,
+        address,
+        type,
+      },
+    });
   };
 
-  if (!items.length) {
-    return (
-      <div className="text-center py-20 text-red-500">
-        ❌ No products to review
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
-      <h2 className="text-3xl font-bold mb-6 text-center text-pink-600">
-        📝 Review Your Order
-      </h2>
+    <div className="p-4 max-w-2xl mx-auto">
+      <h2 className="text-xl font-bold mb-4">Review Order</h2>
 
-      {/* 🛒 Products */}
-      <div className="space-y-6">
+      <ul>
         {items.map((item, index) => (
-          <div
-            key={index}
-            className="bg-white shadow-md rounded-xl p-6 flex gap-6 items-center"
-          >
-            <img
-              src={item.product.image}
-              alt={item.product.name}
-              className="w-28 h-28 object-contain rounded-xl bg-gray-100"
-            />
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-800">
-                {item.product.name}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {item.product.description?.slice(0, 100)}
-              </p>
-              <p className="text-pink-600 font-bold mt-1">
-                ₹{item.product.price}
-              </p>
-              <div className="mt-2 flex items-center gap-3">
-                <label className="text-gray-700 font-medium">Quantity:</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={item.quantity}
-                  onChange={(e) => handleQtyChange(index, e.target.value)}
-                  className="w-20 px-2 py-1 border rounded"
-                />
+          <li key={item._id || item.id || index} className="mb-2">
+            <div className="flex items-center gap-4">
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-16 h-16 object-cover rounded"
+              />
+              <div>
+                <p className="font-medium">{item.name}</p>
+                <p>Qty: {item.quantity}</p>
+                <p>Price: ₹{item.price}</p>
               </div>
             </div>
-          </div>
+          </li>
         ))}
+      </ul>
+
+      <hr className="my-4" />
+
+      <div>
+        <p>Subtotal: ₹{subtotal}</p>
+        <p>Tax (18%): ₹{tax}</p>
+        <p>Delivery Fee: ₹{deliveryFee}</p>
+        <p className="font-bold">Total: ₹{total}</p>
       </div>
 
-      {/* 🚚 Shipping Address */}
-      <ShippingAddress form={shippingForm} onChange={handleShippingChange} />
+      <hr className="my-4" />
 
-      {/* 💵 Bill Summary */}
-      <div className="mt-10 bg-gray-50 p-6 rounded-xl shadow-md">
-        <h4 className="text-xl font-semibold mb-4">💰 Bill Summary</h4>
-
-        {/* 🛍️ List of Products */}
-        <ul className="mb-4 space-y-2 text-gray-700 text-sm">
-          {items.map((item, index) => {
-            const price = item.product.price;
-            const qty = item.quantity;
-            const totalPerItem = price * qty;
-
-            return (
-              <li key={index} className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium">{item.product.name}</div>
-                  <div className="text-gray-500">
-                    ₹{price.toFixed(2)} × {qty} = ₹{totalPerItem.toFixed(2)}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-
-        {/* 💰 Cost Totals */}
-        <ul className="space-y-2 text-gray-700 text-sm">
-          <li className="flex justify-between">
-            <span>Subtotal:</span>
-            <span>₹{subtotal.toFixed(2)}</span>
-          </li>
-          <li className="flex justify-between">
-            <span>Tax (5%):</span>
-            <span>₹{(subtotal * taxRate).toFixed(2)}</span>
-          </li>
-          <li className="flex justify-between">
-            <span>Delivery Fee:</span>
-            <span>₹{deliveryFee.toFixed(2)}</span>
-          </li>
-          <li className="flex justify-between font-bold text-lg text-gray-800 border-t pt-2">
-            <span>Total:</span>
-            <span>₹{total.toFixed(2)}</span>
-          </li>
-        </ul>
+      <h3 className="text-lg font-semibold mb-2">Shipping Address</h3>
+      <div className="space-y-2">
+        <input
+          type="text"
+          name="name"
+          placeholder="Full Name"
+          value={address.name}
+          onChange={handleAddressChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="text"
+          name="phone"
+          placeholder="Phone Number"
+          value={address.phone}
+          onChange={handleAddressChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="text"
+          name="street"
+          placeholder="Street Address"
+          value={address.street}
+          onChange={handleAddressChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="text"
+          name="city"
+          placeholder="City"
+          value={address.city}
+          onChange={handleAddressChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="text"
+          name="state"
+          placeholder="State"
+          value={address.state}
+          onChange={handleAddressChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="text"
+          name="pin"
+          placeholder="Pincode"
+          value={address.pin}
+          onChange={handleAddressChange}
+          className="w-full p-2 border rounded"
+        />
       </div>
 
-
-      {/* ✅ Place Order */}
-      <div className="text-center mt-10">
-        <button
-          onClick={handlePlaceOrder}
-          className="bg-green-600 hover:bg-green-700 text-white text-lg px-6 py-3 rounded-full shadow-md transition"
-        >
-          🚚 Place Order
-        </button>
-      </div>
+      <button
+        onClick={handleContinue}
+        className="mt-6 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+      >
+        Continue to Summary
+      </button>
     </div>
   );
-}
+};
 
 export default ReviewOrder;

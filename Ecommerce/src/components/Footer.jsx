@@ -7,7 +7,7 @@ function Footer() {
         
         {/* Brand */}
         <div>
-          <h2 className="text-2xl font-bold text-pink-400">GiftNest</h2>
+          <h2 className="text-2xl font-bold text-pink-400">SR Colllection</h2>
           <p className="mt-2 text-sm text-gray-300">
             Unique gifts & miscellaneous treasures curated with love. Your one-stop surprise shop.
           </p>

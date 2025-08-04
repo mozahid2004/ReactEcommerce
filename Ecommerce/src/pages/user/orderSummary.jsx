@@ -1,143 +1,79 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { getUserAddress } from '../../Services/orderDetails';
+// src/pages/user/OrderSummary.jsx
 
-function OrderSummary() {
-  const location = useLocation();
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
+const OrderSummary = () => {
   const navigate = useNavigate();
-
+  const { state } = useLocation();
   const {
     items = [],
     subtotal = 0,
     tax = 0,
     deliveryFee = 0,
     total = 0,
-    type,
-  } = location.state || {};
+    address = {},
+    type = "single"
+  } = state || {};
 
-  const [address, setAddress] = useState(null);
-
-  useEffect(() => {
-    const fetchAddress = async () => {
-      try {
-        const data = await getUserAddress();
-        console.log("✅ Address fetched:", data);
-        setAddress(data);
-      } catch (error) {
-        console.error('❌ Error loading address:', error);
-      }
-    };
-
-    fetchAddress();
-  }, []);
-
-  const handleContinueToPayment = () => {
-    navigate('/payment', {
+  const handlePayment = () => {
+    navigate("/payment", {
       state: {
-        items,
-        subtotal,
-        tax,
-        deliveryFee,
-        total,
+        product: type === "single" ? items[0] : null,
+        quantity: type === "single" ? items[0]?.quantity || 1 : null,
+        cartItems: type === "multiple" ? items : null,
         type,
         address,
+        total, // ✅ this was missing — now added!
+        
       },
     });
   };
 
+  console.log(total);
+  
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
-      <h2 className="text-3xl font-bold mb-6 text-center text-pink-600">📦 Order Summary</h2>
-
-      {/* 🛍️ Ordered Items */}
-      <div className="space-y-6">
-        {items.map((item, index) => (
-          <div key={index} className="bg-white shadow rounded-lg p-4 flex gap-4">
-            <img
-              src={item.product.image}
-              alt={item.product.name}
-              className="w-24 h-24 object-contain bg-gray-100 rounded-lg"
-            />
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-800">{item.product.name}</h3>
-              <p className="text-gray-600">Qty: {item.quantity}</p>
-              <p className="text-pink-600 font-bold">
-                ₹{item.product.price} × {item.quantity} = ₹
-                {(item.product.price * item.quantity).toFixed(2)}
-              </p>
+    <div className="p-4 max-w-2xl mx-auto">
+      <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+      <ul>
+        {items.map((item) => (
+          <li key={item._id} className="mb-2">
+            <div className="flex items-center gap-4">
+              <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
+              <div>
+                <p className="font-medium">{item.name}</p>
+                <p>Qty: {item.quantity || 1}</p>
+                <p>Price: ₹{item.price}</p>
+              </div>
             </div>
-          </div>
+          </li>
         ))}
+      </ul>
+      <hr className="my-4" />
+      <div>
+        <p>Subtotal: ₹{subtotal}</p>
+        <p>Tax: ₹{tax}</p>
+        <p>Delivery Fee: ₹{deliveryFee}</p>
+        <p className="font-bold">Total: ₹{total}</p>
       </div>
-
-      {/* 🏠 Shipping Address */}
-      <div className="mt-10 bg-white shadow p-6 rounded-lg">
-        <h3 className="text-xl font-semibold text-gray-700 mb-4">🏠 Shipping Address</h3>
-        {address ? (
-          <p className="text-gray-700">
-            {address.street}, {address.city}, {address.state} - {address.postalCode}
-          </p>
-        ) : (
-          <p className="text-gray-500 italic">Loading your address...</p>
-        )}
+      {/* updated code */}
+      <div className="mt-4">
+        <h3 className="font-semibold">Shipping Address:</h3>
+        <p>{address.name}</p>
+        <p>{address.street}, {address.city}</p>
+        <p>{address.state} - {address.pin}</p>
+        <p>Phone: {address.phone}</p>
       </div>
-
-      {/* 💰 Bill Summary */}
-      <div className="mt-10 bg-gray-50 p-6 rounded-xl shadow-md">
-        <h4 className="text-xl font-semibold mb-4">💰 Bill Summary</h4>
-
-        {/* Product Breakdown */}
-        <ul className="mb-4 space-y-2 text-gray-700 text-sm">
-          {items.map((item, index) => {
-            const price = item.product.price;
-            const qty = item.quantity;
-            const totalPerItem = price * qty;
-
-            return (
-              <li key={index} className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium">{item.product.name}</div>
-                  <div className="text-gray-500">
-                    ₹{price.toFixed(2)} × {qty} = ₹{totalPerItem.toFixed(2)}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-
-        {/* Totals */}
-        <ul className="space-y-2 text-gray-700 text-sm">
-          <li className="flex justify-between">
-            <span>Subtotal:</span>
-            <span>₹{subtotal.toFixed(2)}</span>
-          </li>
-          <li className="flex justify-between">
-            <span>Tax (5%):</span>
-            <span>₹{tax.toFixed(2)}</span>
-          </li>
-          <li className="flex justify-between">
-            <span>Delivery Fee:</span>
-            <span>₹{deliveryFee.toFixed(2)}</span>
-          </li>
-          <li className="flex justify-between font-bold text-lg text-gray-800 border-t pt-2">
-            <span>Total:</span>
-            <span>₹{total.toFixed(2)}</span>
-          </li>
-        </ul>
-      </div>
-
-      {/* ✅ Continue Button */}
-      <div className="text-center mt-10">
-        <button
-          onClick={handleContinueToPayment}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg shadow-md transition"
-        >
-          💳 Continue to Payment
-        </button>
-      </div>
+{/* till hare */}
+      <button
+        onClick={handlePayment}
+        className="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+      >
+        Continue to Pay
+      </button>
     </div>
   );
-}
+};
 
 export default OrderSummary;

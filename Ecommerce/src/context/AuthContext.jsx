@@ -1,12 +1,16 @@
+// 📁 /src/context/AuthContext.jsx
+
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
+// ✅ Hook to access auth context
 export const useAuth = () => useContext(AuthContext);
 
+// ✅ Auth provider wrapper
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null); // ✅ Add token to state
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -14,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
     if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
-      setToken(storedToken); // ✅ Restore token
+      setToken(storedToken);
     }
   }, []);
 
@@ -22,13 +26,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
     setUser(data.user);
-    setToken(data.token); // ✅ Save token in state
+    setToken(data.token);
   };
 
   const logout = () => {
     localStorage.clear();
     setUser(null);
-    setToken(null); // ✅ Clear token
+    setToken(null);
   };
 
   return (
@@ -37,3 +41,6 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+// ✅ Optional: default export (only if needed elsewhere)
+export default AuthContext;

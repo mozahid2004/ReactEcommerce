@@ -34,6 +34,22 @@ const addToCart = async (req, res) => {
   }
 };
 
+const clearAllCartAfterPurchase = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id || req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.cart = [];
+    await user.save();
+
+    res.status(200).json({ message: 'Cart cleared successfully', cart: user.cart });
+  } catch (error) {
+    console.error('🛑 Failed to clear cart:', error);
+    res.status(500).json({ message: 'Failed to clear cart' });
+  }
+};
+
+
 /**
  * @desc   Get user's cart with populated product info
  * @route  GET /api/user/cart
@@ -120,6 +136,32 @@ const getWishlist = async (req, res) => {
 };
 
 /**
+ * @desc   Remove product from wishlist
+ * @route  DELETE /api/user/wishlist/:productId
+ * @access Private
+ */
+const removeFromWishlist = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    user.wishlist = user.wishlist.filter(
+      (item) => item.productId.toString() !== productId
+    );
+
+    await user.save();
+    res.json({ msg: "✅ Item removed from wishlist", wishlist: user.wishlist });
+  } catch (err) {
+    console.error("❌ Remove from wishlist error:", err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+
+
+/**
  * @desc   Get user profile including address
  * @route  GET /api/user/profile
  * @access Private
@@ -165,6 +207,8 @@ export {
   removeFromCart,
   addToWishlist,
   getWishlist,
+  removeFromWishlist,
   getUserProfile,
+  clearAllCartAfterPurchase,
   updateAddress  // ✅ Corrected name
 };

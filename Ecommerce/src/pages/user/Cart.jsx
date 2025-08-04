@@ -7,7 +7,6 @@ function Cart() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // ✅ Fetch cart on load
   useEffect(() => {
     const fetchCart = async () => {
       try {
@@ -27,7 +26,6 @@ function Cart() {
     fetchCart();
   }, []);
 
-  // ⛑️ Filter valid cart items
   const validCartItems = cart.filter(
     (item) =>
       item?.productId &&
@@ -35,7 +33,6 @@ function Cart() {
       Number(item.quantity) > 0
   );
 
-  // 💰 Bill Summary
   const totalItems = validCartItems.reduce(
     (acc, item) => acc + Number(item.quantity),
     0
@@ -45,7 +42,6 @@ function Cart() {
     return acc + Number(item.quantity) * price;
   }, 0);
 
-  // ✅ Remove from cart
   const handleRemove = async (productId) => {
     try {
       const token = localStorage.getItem('token');
@@ -62,7 +58,6 @@ function Cart() {
     }
   };
 
-  // ✅ Buy Now (single product)
   const handleBuyNow = (product, quantity) => {
     navigate('/review-order', {
       state: {
@@ -73,7 +68,6 @@ function Cart() {
     });
   };
 
-  // ✅ Buy All Items
   const handleBuyAll = () => {
     const buyItems = validCartItems.map((item) => ({
       product: item.productId,
@@ -94,83 +88,85 @@ function Cart() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 px-4">
-      <h2 className="text-3xl font-bold mb-6">🛒 Your Cart</h2>
+    <div className="min-h-screen bg-gradient-to-tr from-yellow-50 via-pink-100 to-purple-200 py-10 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-4xl font-extrabold text-center text-purple-800 mb-10 tracking-wide shadow-sm drop-shadow-md">
+          🛒 Your Funky Cart
+        </h2>
 
-      {loading ? (
-        <p className="text-gray-600">Loading your cart...</p>
-      ) : validCartItems.length === 0 ? (
-        <p className="text-gray-600">No items in cart.</p>
-      ) : (
-        <>
-          <div className="space-y-4">
-            {validCartItems.map((item, i) => {
-              const product = item.productId;
+        {loading ? (
+          <p className="text-center text-lg text-gray-700 animate-pulse">Loading your cart...</p>
+        ) : validCartItems.length === 0 ? (
+          <p className="text-center text-xl text-gray-600">🚫 No items in cart</p>
+        ) : (
+          <>
+            <div className="grid gap-6">
+              {validCartItems.map((item, i) => {
+                const product = item.productId;
 
-              return (
-                <div
-                  key={item._id || i}
-                  className="flex items-center justify-between bg-white shadow-md rounded-xl p-4 gap-4"
-                >
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-24 h-24 object-contain bg-gray-100 rounded-lg"
-                  />
+                return (
+                  <div
+                    key={item._id || i}
+                    className="bg-white/90 backdrop-blur-sm shadow-2xl rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 transition hover:scale-[1.01]"
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full sm:w-36 h-36 object-contain rounded-xl border-4 border-purple-300 bg-white shadow-md transition-all duration-300 hover:scale-105"
+                    />
 
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {product.description?.slice(0, 80)}...
-                    </p>
-                    <p className="text-pink-600 font-bold mt-1">
-                      ₹{product.price}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Quantity: {item.quantity}
-                    </p>
+                    <div className="flex-1 text-center sm:text-left">
+                      <h3 className="text-2xl font-bold text-purple-700">{product.name}</h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {product.description?.slice(0, 80)}...
+                      </p>
+                      <div className="mt-2 flex justify-between sm:justify-start sm:gap-6">
+                        <span className="text-pink-600 font-semibold text-lg">
+                          ₹{product.price}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          Qty: {item.quantity}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 w-full sm:w-auto">
+                      <button
+                        onClick={() => handleRemove(product._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-full text-lg transition transform hover:scale-105 shadow-md"
+                      >
+                        ❌ Remove
+                      </button>
+                      <button
+                        onClick={() => handleBuyNow(product, item.quantity)}
+                        className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full text-lg transition transform hover:scale-105 shadow-md"
+                      >
+                        ⚡ Buy Now
+                      </button>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <div className="flex flex-col gap-2">
-                    <button
-                      onClick={() => handleRemove(product._id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm transition"
-                    >
-                      Remove
-                    </button>
-                    <button
-                      onClick={() => handleBuyNow(product, item.quantity)}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm transition"
-                    >
-                      Buy Now
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            {/* Bill Summary */}
+            <div className="mt-12 bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-2xl text-center">
+              <h3 className="text-3xl font-bold text-gray-800 mb-4">💸 Bill Summary</h3>
+              <p className="text-lg text-gray-700">🧾 Total Items: {totalItems}</p>
+              <p className="text-2xl font-extrabold text-purple-700 mt-2">
+                💰 Total: ₹{totalPrice}
+              </p>
 
-          {/* 💵 Bill Summary */}
-          <div className="mt-8 bg-gray-100 p-6 rounded-2xl shadow-md text-right">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              🧾 Bill Summary
-            </h3>
-            <p className="text-gray-700">Total Items: {totalItems}</p>
-            <p className="text-gray-800 text-lg font-bold mt-2">
-              Total Amount: ₹{totalPrice}
-            </p>
-
-            <button
-              onClick={handleBuyAll}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-base shadow transition"
-            >
-              🛍️ Buy All Items
-            </button>
-          </div>
-        </>
-      )}
+              <button
+                onClick={handleBuyAll}
+                className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold px-10 py-4 rounded-full text-xl transition transform hover:scale-105 shadow-xl"
+              >
+                🛍️ Buy All Items
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

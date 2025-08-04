@@ -82,10 +82,12 @@ function ProductDetails() {
       if (!user) {
         alert("🔐 Please login to add to wishlist");
         return;
+       
       }
       const token = localStorage.getItem('token');
       await addToWishlist(product._id, token);
       setWishlisted(!wishlisted);
+      alert("product added to wishlist")
     } catch (err) {
       console.error("❌ Wishlist Error:", err);
       alert("❌ Could not update wishlist");

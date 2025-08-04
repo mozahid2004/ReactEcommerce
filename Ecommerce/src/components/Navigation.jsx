@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 function NavigationBar() {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false); // 👈 Added
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -11,6 +12,7 @@ function NavigationBar() {
   const handleLogout = () => {
     logout();
     setShowDropdown(false);
+    setShowMobileMenu(false); // 👈 Close menu on logout
     navigate('/');
   };
 
@@ -27,9 +29,19 @@ function NavigationBar() {
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
 
         {/* 🎁 Logo */}
-        <Link to="/" className="text-2xl font-bold text-white">
-          🎁 GiftStore
-        </Link>
+        <div className="flex w-full justify-between items-center md:w-auto">
+          <Link to="/" className="text-2xl font-bold text-white">
+            🎁 SR Colllection
+          </Link>
+
+          {/* 📱 Mobile Menu Toggle Button */}
+          <button
+            className="md:hidden text-white text-2xl focus:outline-none"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+          >
+            ☰
+          </button>
+        </div>
 
         {/* 🔍 Search Bar */}
         <form onSubmit={handleSearch} className="relative w-full md:w-1/3">
@@ -44,14 +56,23 @@ function NavigationBar() {
         </form>
 
         {/* 🔗 Navigation Links */}
-        <div className="space-x-6 text-sm font-medium hidden md:flex items-center relative">
-          <Link to="/" className="hover:text-yellow-300">Home</Link>
-          <Link to="/shop" className="hover:text-yellow-300">Shop</Link>
+        <div
+          className={`${showMobileMenu ? 'flex' : 'hidden'
+            } md:flex flex-col md:flex-row space-y-4 md:space-y-0 space-x-0 md:space-x-6 text-sm font-medium items-start md:items-center w-full md:w-auto`}
+        >
+          <Link to="/" className="hover:text-yellow-300" onClick={() => setShowMobileMenu(false)}>Home</Link>
+          <Link to="/shop" className="hover:text-yellow-300" onClick={() => setShowMobileMenu(false)}>Shop</Link>
 
-          {/* ✅ User Logged In */}
           {user && user.role === 'user' && (
-            <>
-              <Link to="/user/dashboard" className="hover:text-yellow-300">User Dashboard</Link>
+            <div className="ml-auto flex items-center space-x-4 relative">
+              <Link
+                to="/user/dashboard"
+                className="hover:text-yellow-300"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                User Dashboard
+              </Link>
+
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
@@ -59,6 +80,7 @@ function NavigationBar() {
                 >
                   {user.name} ⌄
                 </button>
+
                 {showDropdown && (
                   <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg z-10">
                     <button
@@ -70,13 +92,15 @@ function NavigationBar() {
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
+
+
 
           {/* ✅ Admin Logged In */}
           {user && user.role === 'admin' && (
             <>
-              <Link to="/admin/dashboard" className="hover:text-yellow-300">Admin Dashboard</Link>
+              <Link to="/admin/dashboard" className="hover:text-yellow-300" onClick={() => setShowMobileMenu(false)}>Admin Dashboard</Link>
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
@@ -89,21 +113,30 @@ function NavigationBar() {
                     <Link
                       to="/admin/add-product"
                       className="block px-4 py-2 hover:bg-gray-100"
-                      onClick={() => setShowDropdown(false)}
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setShowMobileMenu(false);
+                      }}
                     >
                       ➕ Add Product
                     </Link>
                     <Link
                       to="/admin/products"
                       className="block px-4 py-2 hover:bg-gray-100"
-                      onClick={() => setShowDropdown(false)}
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setShowMobileMenu(false);
+                      }}
                     >
                       🛠️ Manage Products
                     </Link>
                     <Link
                       to="/admin/orders"
                       className="block px-4 py-2 hover:bg-gray-100"
-                      onClick={() => setShowDropdown(false)}
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setShowMobileMenu(false);
+                      }}
                     >
                       📦 View Orders
                     </Link>
@@ -125,12 +158,14 @@ function NavigationBar() {
               <Link
                 to="/login"
                 className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded text-white"
+                onClick={() => setShowMobileMenu(false)}
               >
                 Login
               </Link>
               <Link
                 to="/signup"
                 className="border border-yellow-500 px-4 py-2 rounded text-yellow-500 hover:bg-yellow-500 hover:text-white"
+                onClick={() => setShowMobileMenu(false)}
               >
                 Sign Up
               </Link>

@@ -15,15 +15,18 @@ import ProductDetails from "./pages/user/ProductDetails"; // ✅ Corrected impor
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import SearchPage from "./components/SearchPage";
+import VerifyEmail from './pages/VerifyEmail'; 
 
 // User features
 import Cart from "./pages/user/Cart";
 import Wishlist from "./pages/user/Wishlist";
-import PaymentPage from "./pages/user/PatmentPage";
+import PatmentPage from "./pages/user/PatmentPage";
 // import OrderConfirmation from "./pages/user/OrderConfirmation"; // Uncomment if needed
 import ReviewOrder from './pages/user/ReviewOrder';
 // import OrderSummary from './pages/user/OrderSummary';
 import OrderSummary from "./pages/user/orderSummary";
+import OrderConfirmation from './pages/user/OrderConfirmation';
+import UserOrders from "./pages/user/UserOrders";
 
 // Dashboards
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -34,6 +37,7 @@ import AddProduct from "./pages/admin/AddProduct";
 import ProductList from "./pages/admin/ProductList";
 import EditProduct from "./pages/admin/EditProduct";
 import ManageUsers from "./pages/admin/ManageUsers";
+import  Support  from "./pages/user/Support";
 
 function App() {
   const { user } = useAuth(); // Get current user and role
@@ -51,14 +55,21 @@ function App() {
         <Route path="/product/:id" element={<ProductDetails />} /> {/* ✅ Updated here */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/payment" element={<PatmentPage />} />
         {/* <Route path="/order-confirmation" element={<OrderConfirmation />} /> */}
+        <Route path="/verify-email" element={<VerifyEmail />} />
+
 
         {/* User-only routes */}
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/review-order" element={<ReviewOrder />} />
         <Route path="/order-summary" element={<OrderSummary />} />
+        <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/orders" element={<UserOrders />} />
+        <Route path="/support" element={<Support />} />
+
+
 
 
         {/* Redirect based on role */}

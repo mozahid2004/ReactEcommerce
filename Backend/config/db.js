@@ -1,25 +1,16 @@
 // config/db.js
 
-// 📦 Import Mongoose to interact with MongoDB
 import mongoose from 'mongoose';
 
-// 🔌 Function to connect to MongoDB using Mongoose
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      // ✅ These options help avoid deprecation warnings
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(process.env.MONGO_URI);
 
-    // ✅ Successful connection log
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (err) {
-    // ❌ Error handling
     console.error(`❌ MongoDB Connection Error: ${err.message}`);
-    process.exit(1); // Exit the process with failure
+    process.exit(1);
   }
 };
 
-// 🔄 Export the function for use in server.js
 export default connectDB;

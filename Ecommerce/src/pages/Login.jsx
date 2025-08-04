@@ -1,63 +1,102 @@
 import React, { useState } from 'react';
-import authService from '../Services/authService';      // ✅ Default export
-import { useAuth } from '../context/AuthContext';       // ✅ Auth context
-import { useNavigate } from 'react-router-dom';         // ✅ Navigation
+import authService from '../Services/authService';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState(''); // email or mobile
   const [password, setPassword] = useState('');
-
-  const { login } = useAuth();       // ✅ Context function to save user/token
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
 
     try {
-      const res = await authService.login({ email, password }); // ✅ Auth API call
-
-      if (res.token && res.user) {
-        login(res);             // ✅ Save user + token in context
-        alert("Login successful");
-        navigate('/dashboard'); // ✅ Redirect
+      const data = await authService.login({ identifier, password }); // ← data = { token, user }
+      if (data.token && data.user) {
+        login(data); // useAuth() will handle context
+        alert('Login successful ✅');
+        navigate('/dashboard');
       } else {
-        alert(res.msg || "Login failed");
+        setError(data?.message || 'Login failed.');
       }
+
+
     } catch (err) {
-      console.error("Login error:", err);
-      alert("Login failed. Check console for details.");
+      console.error('Login error:', err);
+      if (err.response) {
+        const { status, data } = err.response;
+        if (status === 403) {
+          setError(data.message || 'Please verify your email before logging in.');
+        } else if (status === 401) {
+          setError('Invalid credentials.');
+        } else {
+          setError(data.message || 'Something went wrong.');
+        }
+      } else {
+        setError('Network error. Try again.');
+      }
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:5000/api/auth/google'; // adjust for prod
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-10 space-y-4">
+    <div className="max-w-md mx-auto mt-10 p-6 border border-gray-300 rounded-lg shadow-md bg-white space-y-6">
       <h2 className="text-2xl font-bold text-center">Login</h2>
 
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        required
-        className="w-full border border-gray-300 p-2 rounded"
-      />
+      {error && (
+        <div className="bg-red-100 text-red-600 border border-red-300 p-2 rounded text-sm">
+          {error}
+        </div>
+      )}
 
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        required
-        className="w-full border border-gray-300 p-2 rounded"
-      />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          placeholder="Email or Mobile"
+          required
+          className="w-full border border-gray-300 p-2 rounded"
+        />
+
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          required
+          className="w-full border border-gray-300 p-2 rounded"
+        />
+
+        <button
+          type="submit"
+          className="w-full bg-pink-500 text-white py-2 rounded hover:bg-pink-600 transition"
+        >
+          Login
+        </button>
+      </form>
+
+      <div className="text-center text-sm text-gray-500">OR</div>
 
       <button
-        type="submit"
-        className="w-full bg-pink-500 text-white py-2 rounded hover:bg-pink-600 transition"
+        onClick={handleGoogleLogin}
+        className="w-full flex items-center justify-center gap-2 bg-white border border-gray-400 text-gray-700 py-2 rounded hover:bg-gray-50 transition"
       >
-        Login
+        <img
+          src="https://www.svgrepo.com/show/475656/google-color.svg"
+          alt="Google"
+          className="w-5 h-5"
+        />
+        Login with Google
       </button>
-    </form>
+    </div>
   );
 }
 

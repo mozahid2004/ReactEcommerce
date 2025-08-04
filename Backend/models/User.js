@@ -1,13 +1,16 @@
 // 📁 backend/models/User.js
 
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 /**
  * User Schema
- * Represents all registered users (admin and regular).
+ * Stores all users (admin and regular) with eCommerce-related data,
+ * personalization, marketing, and activity tracking.
  */
 const userSchema = new mongoose.Schema(
   {
+    /** 👤 Basic Info */
     name: {
       type: String,
       required: true,
@@ -28,19 +31,20 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
     },
 
-    role: {
-      type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
-    },
-
     mobile: {
       type: String,
       required: false,
       trim: true,
     },
 
-    // ✅ Cart contains product references with quantities
+    /** 🛡️ Role-based Access Control */
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
+
+    /** 🛒 Shopping Cart */
     cart: [
       {
         productId: {
@@ -55,7 +59,7 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-    // ✅ Wishlist contains only product references
+    /** ❤️ Wishlist */
     wishlist: [
       {
         productId: {
@@ -65,15 +69,65 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-    // ✅ Address properly defined INSIDE the schema
+    /** 🏠 Shipping Address */
     address: {
       street: { type: String },
       city: { type: String },
       state: { type: String },
-      postalCode: { type: String }
+      postalCode: { type: String },
+      country: { type: String },
+      phone: { type: String },
     },
 
-    // ✅ Marketing Features
+    /** 📦 Order History (References to Order Collection) */
+    orderHistory: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+      },
+    ],
+
+    /** 📈 Analytics & Tracking */
+    totalSpent: {
+      type: Number,
+      default: 0,
+    },
+    numberOfOrders: {
+      type: Number,
+      default: 0,
+    },
+
+    /** ✅ Auth & Security */
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: String,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+
+
+    otp: {
+      type: String,
+    },
+    otpExpires: {
+      type: Date,
+    },
+
+    /** 🔐 Login History for Security Logs */
+    loginHistory: [
+      {
+        timestamp: { type: Date, default: Date.now },
+        ipAddress: String,
+        userAgent: String,
+      },
+    ],
+
+    /** 🧠 Marketing & Personalization */
+    subscribedToNewsletter: {
+      type: Boolean,
+      default: false,
+    },
     tags: [
       {
         type: String,
@@ -81,20 +135,26 @@ const userSchema = new mongoose.Schema(
         lowercase: true,
       },
     ],
-
-    subscribedToNewsletter: {
-      type: Boolean,
-      default: false,
-    },
-
     notes: {
       type: String,
       trim: true,
     },
+
+    /** ⚠️ Admin Controls */
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
-    timestamps: true,
+    timestamps: true, // ➕ Automatically adds createdAt and updatedAt fields
   }
 );
+
+
+// ✅ Method to compare password
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 export default mongoose.model('User', userSchema);

@@ -1,19 +1,30 @@
+// 📁 frontend/Services/authService.js
+
 import axios from 'axios';
 
-const API = 'http://localhost:5000/api/auth';
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api';
 
-const authService = {
-  // 🔐 Signup
-  signup: async (formData) => {
-    const res = await axios.post(`${API}/signup`, formData);
-    return res.data;
-  },
-
-  // 🔐 Login
-  login: async (credentials) => {
-    const res = await axios.post(`${API}/login`, credentials);
-    return res.data;
+const login = async (credentials) => {
+  try {
+    const { data } = await axios.post(`${API_URL}/auth/login`, credentials);
+    return data; // ✅ { user, token }
+  } catch (error) {
+    console.error('🔒 Login error:', error.response?.data || error.message);
+    throw error.response?.data || { message: 'Login failed' };
   }
 };
 
-export default authService;
+const signup = async (userData) => {
+  try {
+    const { data } = await axios.post(`${API_URL}/auth/signup`, userData);
+    return data;
+  } catch (error) {
+    console.error('📩 Signup error:', error.response?.data || error.message);
+    throw error.response?.data || { message: 'Signup failed' };
+  }
+};
+
+export default {
+  login,
+  signup,
+};
